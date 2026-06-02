@@ -81,3 +81,119 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
 
 
+# Model 3: Event (Main model)
+class Event(models.Model):
+    """Campus events that users can create and join"""
+    
+    # Basic Info
+    title = models.CharField(max_length=200)
+    # max_length=200 means max 200 characters
+    
+    description = models.TextField()
+    # TextField allows long text
+    
+    category = models.ForeignKey(
+        EventCategory,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    # ForeignKey means event belongs to ONE category
+    # on_delete=models.SET_NULL means if category deleted, it becomes null
+    
+    # Creator Info
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='created_events'
+    )
+    # related_name='created_events' means we can do:
+    # user.created_events.all() to get all events they created
+    
+    # Date/Time Info
+    date = models.DateField()
+    # DateField stores just the date (no time)
+    
+    time = models.TimeField()
+    # TimeField stores just the time
+    
+    duration_hours = models.IntegerField(default=1)
+    # IntegerField for whole numbers
+    
+    # Location
+    location = models.CharField(max_length=300)
+    # Where the event happens
+    
+    # Capacity
+    max_attendees = models.IntegerField(
+        default=0,
+        help_text="0 means unlimited"
+    )
+    # 0 = unlimited spots
+    
+    # Image
+    cover_image = models.ImageField(
+        upload_to='event_images/',
+        blank=True,
+        null=True
+    )
+    # Event poster/cover image
+    
+    # Status
+    STATUS_CHOICES = [
+        ('upcoming', 'Upcoming'),
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='upcoming'
+    )
+    
+    # Attendees (Many-to-Many)
+    attendees = models.ManyToManyField(
+        User,
+        through='Attendance',
+        related_name='attending_events',
+        blank=True
+    )
+    # ManyToManyField means many users can join one event
+    # and user can join many events
+    # through='Attendance' uses Attendance model to track join details
+    # related_name allows: user.attending_events.all()
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # auto_now=True means it updates every time event is modified
+    
+    def __str__(self):
+        return self.title
+    
+    def attendees_count(self):
+        """Return number of attendees"""
+        return self.attendees.count()
+    
+    def is_full(self):
+        """Check if event is at capacity"""
+        if self.max_attendees == 0:
+            return False
+        return self.attendees_count() >= self.max_attendees
+    
+    def is_creator(self, user):
+        """Check if user is the creator"""
+        return self.creator == user
+    
+    def is_attending(self, user):
+        """Check if user is attending"""
+        return self.attendees.filter(id=user.id).exists()
+    
+    class Meta:
+        ordering = ['-date']  # Show newest events first
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['category']),
+        ]
+
+
