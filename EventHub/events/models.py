@@ -197,3 +197,74 @@ class Event(models.Model):
         ]
 
 
+# Model 4: Attendance (Track who joins what)
+class Attendance(models.Model):
+    """Track attendance details for events"""
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Which user
+    
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    # Which event
+    
+    joined_at = models.DateTimeField(auto_now_add=True)
+    # When did they join
+    
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('interested', 'Interested'),
+            ('going', 'Going'),
+            ('attended', 'Attended'),
+            ('cancelled', 'Cancelled'),
+        ],
+        default='going'
+    )
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.event.title}"
+    
+    class Meta:
+        unique_together = ['user', 'event']
+        # This prevents user from joining same event twice
+        ordering = ['-joined_at']
+
+# Model 5: Notification (Optional but good)
+class Notification(models.Model):
+    """Notify users about event updates"""
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    
+    message = models.TextField()
+    
+    notification_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('new_event', 'New Event'),
+            ('new_attendee', 'New Attendee'),
+            ('event_cancelled', 'Event Cancelled'),
+            ('event_updated', 'Event Updated'),
+        ]
+    )
+    S
+    is_read = models.BooleanField(default=False)
+    # BooleanField is true/false
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.message[:50]}"
+    
+    class Meta:
+        ordering = ['-created_at']
