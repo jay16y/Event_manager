@@ -257,7 +257,7 @@ class Notification(models.Model):
             ('event_updated', 'Event Updated'),
         ]
     )
-    S
+    
     is_read = models.BooleanField(default=False)
     # BooleanField is true/false
     
