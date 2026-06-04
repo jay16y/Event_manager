@@ -1,0 +1,657 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventHub - Campus Events{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --dark-bg: #0a0e27;
+            --darker-bg: #050811;
+            --card-bg: #1a1f3a;
+            --neon-cyan: #00d9ff;
+            --neon-purple: #bd00ff;
+            --neon-pink: #ff006e;
+            --neon-green: #00ff41;
+            --text-light: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border-color: #2a2f4a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, #0f1538 100%);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+        
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+            filter: brightness(1.2);
+        }
+        
+        .nav-link {
+            color: var(--text-light) !important;
+            margin: 0 0.5rem;
+            font-weight: 500;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--neon-cyan) !important;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .dropdown-menu {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            border-radius: 12px;
+        }
+        
+        .dropdown-item {
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--neon-cyan);
+            border-left-color: var(--neon-cyan);
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+        
+        /* ===== ALERTS ===== */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            border-left: 4px solid;
+            background: var(--card-bg);
+            color: var(--text-light);
+            animation: slideInDown 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .alert-success {
+            border-left-color: var(--neon-green);
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--neon-green);
+        }
+        
+        .alert-danger {
+            border-left-color: var(--neon-pink);
+            background: rgba(255, 0, 110, 0.1);
+            color: var(--neon-pink);
+        }
+        
+        .alert-warning {
+            border-left-color: #ffb700;
+            background: rgba(255, 183, 0, 0.1);
+            color: #ffb700;
+        }
+        
+        .alert-info {
+            border-left-color: var(--neon-cyan);
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--neon-cyan);
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 16px 48px rgba(0, 217, 255, 0.2);
+            transform: translateY(-8px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(189, 0, 255, 0.1));
+            border-bottom: 1px solid var(--border-color);
+            color: var(--neon-cyan);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .card-body {
+            color: var(--text-light);
+        }
+        
+        /* ===== BUTTONS ===== */
+        .btn {
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.7rem 1.8rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: var(--darker-bg);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
+            color: var(--darker-bg);
+        }
+        
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-light);
+            border: 1px solid var(--neon-cyan);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            transform: translateY(-3px);
+        }
+        
+        .btn-warning {
+            background: var(--neon-pink);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.6);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+        }
+        
+        .btn-danger:hover {
+            background: var(--neon-pink);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: transparent;
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.8rem;
+        }
+        
+        /* ===== FORMS ===== */
+        .form-control, .form-select {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 10px;
+            padding: 0.8rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: var(--card-bg);
+            border-color: var(--neon-cyan);
+            color: var(--text-light);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+        
+        .form-label {
+            color: var(--neon-cyan);
+            font-weight: 600;
+            margin-bottom: 0.7rem;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ===== BADGES ===== */
+        .badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 1px solid;
+            font-size: 0.8rem;
+        }
+        
+        .badge-info {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+        }
+        
+        /* ===== HEADINGS ===== */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-light);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            color: var(--neon-cyan);
+        }
+        
+        h3 {
+            color: var(--text-light);
+        }
+        
+        /* ===== FOOTER ===== */
+        footer {
+            background: rgba(10, 14, 39, 0.95);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            text-align: center;
+            padding: 3rem 0;
+            margin-top: auto;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        footer h5 {
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+        
+        footer a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        footer a:hover {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        footer p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            
+            .nav-link {
+                margin: 0.5rem 0;
+            }
+        }
+        
+        /* ===== UTILITIES ===== */
+        .text-cyan {
+            color: var(--neon-cyan);
+        }
+        
+        .text-purple {
+            color: var(--neon-purple);
+        }
+        
+        .text-pink {
+            color: var(--neon-pink);
+        }
+        
+        .text-muted-custom {
+            color: var(--text-muted);
+        }
+        
+        hr {
+            border-color: var(--border-color);
+            opacity: 0.5;
+        }
+        
+        a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--darker-bg);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <!-- Brand -->
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-ticket-alt"></i> EventHub
+            </a>
+            
+            <!-- Toggle Button (Mobile) -->
+            <button 
+                class="navbar-toggler border-0" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navbar Content -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <!-- Home Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                        <!-- Create Event (Logged In) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'create_event' %}">
+                                <i class="fas fa-plus-circle"></i> Create
+                            </a>
+                        </li>
+                        
+                        <!-- My Events (Logged In) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'my_events' %}">
+                                <i class="fas fa-list"></i> My Events
+                            </a>
+                        </li>
+                        
+                        <!-- Profile Dropdown (Logged In) -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" 
+                               href="#" 
+                               id="profileDropdown" 
+                               role="button" 
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> {{ user.first_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'user_profile' user.username %}">
+                                        <i class="fas fa-user"></i> View Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'edit_profile' %}">
+                                        <i class="fas fa-edit"></i> Edit Profile
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'logout' %}">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    
+                    {% else %}
+                        <!-- Login (Not Logged In) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        
+                        <!-- Sign Up (Not Logged In) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Messages (Alerts) -->
+    <main>
+        <div class="container">
+            {% if messages %}
+                <div class="mt-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-ticket-alt"></i> EventHub</h5>
+                    <p class="small">Discover and join amazing campus events!</p>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled small">
+                        <li><a href="{% url 'home' %}">Browse Events</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                            <li><a href="{% url 'my_events' %}">My Events</a></li>
+                        {% else %}
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'register' %}">Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <h5>Follow Us</h5>
+                    <p class="small">
+                        <a href="#"><i class="fab fa-facebook"></i> Facebook</a> | 
+                        <a href="#"><i class="fab fa-twitter"></i> Twitter</a> | 
+                        <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
+                    </p>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <p class="small mb-0">
+                &copy; 2024 EventHub. All rights reserved.
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
