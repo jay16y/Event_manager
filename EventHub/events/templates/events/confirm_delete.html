@@ -1,0 +1,49 @@
+<!-- events/templates/events/confirm_delete.html -->
+{% extends 'base.html' %}
+
+{% block title %}Delete Event - EventHub{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h1 class="text-danger">⚠️ Delete Event?</h1>
+                <p class="text-muted mt-3">
+                    Are you sure you want to delete this event?
+                </p>
+                
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h4>{{ event.title }}</h4>
+                        <p class="mb-0">
+                            📅 {{ event.date|date:"F d, Y" }} at {{ event.time|time:"H:i" }}
+                        </p>
+                    </div>
+                </div>
+                
+                <p class="text-danger">
+                    <strong>⚠️ Warning:</strong> This action cannot be undone!
+                </p>
+                <p class="text-muted">
+                    All attendees will be notified that this event has been cancelled.
+                </p>
+                
+                <!-- Confirm Delete Form -->
+                <form method="POST" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            🗑️ Yes, Delete Event
+                        </button>
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-secondary">
+                            ✗ Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

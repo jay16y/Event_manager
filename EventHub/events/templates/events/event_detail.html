@@ -1,0 +1,212 @@
+<!-- events/templates/events/event_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - EventHub{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <!-- Event Image -->
+        {% if event.cover_image %}
+            <img 
+                src="{{ event.cover_image.url }}" 
+                class="img-fluid rounded mb-4"
+                alt="{{ event.title }}"
+                style="max-height: 400px; object-fit: cover; width: 100%; border-radius: 16px;"
+            >
+        {% endif %}
+        
+        <!-- Event Title and Basic Info -->
+        <h1>{{ event.title }}</h1>
+        <p class="text-muted">
+            Created by <a href="{% url 'user_profile' event.creator.username %}">
+                {{ event.creator.first_name }} {{ event.creator.last_name }}
+            </a>
+        </p>
+        
+        <!-- Event Details Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Event Details</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>📅 Date:</strong> 
+                    {{ event.date|date:"F d, Y" }}
+                </p>
+                
+                <p>
+                    <strong>🕐 Time:</strong> 
+                    {{ event.time|time:"H:i" }}
+                </p>
+                
+                <p>
+                    <strong>⏱️ Duration:</strong> 
+                    {{ event.duration_hours }} hour(s)
+                </p>
+                
+                <p>
+                    <strong>📍 Location:</strong> 
+                    {{ event.location }}
+                </p>
+                
+                <p>
+                    <strong>📂 Category:</strong> 
+                    <span class="badge badge-info">{{ event.category.name }}</span>
+                </p>
+                
+                <p>
+                    <strong>👥 Attendees:</strong> 
+                    {{ event.attendees_count }}
+                    {% if event.max_attendees > 0 %}
+                        / {{ event.max_attendees }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Description Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📝 Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ event.description|linebreaks }}</p>
+            </div>
+        </div>
+        
+        <!-- Attendees Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">👥 Attendees ({{ event.attendees_count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if event.attendees.all %}
+                    <div class="row">
+                        {% for attendee in event.attendees.all|slice:":6" %}
+                            <div class="col-md-2 mb-3 text-center">
+                                {% if attendee.userprofile.profile_picture %}
+                                    <img 
+                                        src="{{ attendee.userprofile.profile_picture.url }}" 
+                                        class="img-fluid rounded-circle"
+                                        style="width: 60px; height: 60px; object-fit: cover;"
+                                        alt="{{ attendee.first_name }}"
+                                    >
+                                {% else %}
+                                    <div 
+                                        class="bg-secondary rounded-circle d-inline-block" 
+                                        style="width: 60px; height: 60px;"
+                                    ></div>
+                                {% endif %}
+                                <p class="mt-2 small">
+                                    {{ attendee.first_name }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if event.attendees.count > 6 %}
+                        <p class="text-muted">
+                            +{{ event.attendees.count|add:"-6" }} more attendees
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No one attending yet. Be the first!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-8 offset-md-2">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">⚡ Status</h5>
+            </div>
+            <div class="card-body">
+                
+                {% if is_creator %}
+                    <!-- Creator View: Show edit/delete AND join option -->
+                    <div class="mb-3">
+                        <p class="text-success mb-2">✓ You created this event</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'edit_event' event.id %}" class="btn btn-warning">
+                            ✏️ Edit Event
+                        </a>
+                        <a href="{% url 'delete_event' event.id %}" class="btn btn-danger">
+                            🗑️ Delete Event
+                        </a>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Creator can also join their own event -->
+                    {% if is_attending %}
+                        <p class="text-info mb-3">✓ You're also attending this event</p>
+                        <form method="POST" action="{% url 'leave_event' event.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary w-100">
+                                👋 Leave as Attendee
+                            </button>
+                        </form>
+                    {% elif can_join %}
+                        <p class="text-info mb-3">You can also join as an attendee</p>
+                        <form method="POST" action="{% url 'join_event' event.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary w-100">
+                                🎉 Join Event as Attendee
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            This event is full
+                        </div>
+                    {% endif %}
+                
+                {% elif is_attending %}
+                    <!-- Non-creator who is attending -->
+                    <p class="text-success mb-3">✓ You're attending this event</p>
+                    <form method="POST" action="{% url 'leave_event' event.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100">
+                            👋 Leave Event
+                        </button>
+                    </form>
+                
+                {% elif can_join %}
+                    <!-- Non-creator who can join -->
+                    <form method="POST" action="{% url 'join_event' event.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            🎉 Join Event
+                        </button>
+                    </form>
+                
+                {% else %}
+                    <!-- Event is full -->
+                    <div class="alert alert-warning">
+                        This event is full
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Share Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📤 Share</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Share this event with friends
+                </p>
+                <button class="btn btn-outline-secondary w-100">
+                    Share Event
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+<!-- events/templates/events/user_profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ user.first_name }}'s Profile - EventHub{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Sidebar -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <!-- Profile Picture -->
+                {% if profile.profile_picture %}
+                    <img 
+                        src="{{ profile.profile_picture.url }}" 
+                        class="img-fluid rounded-circle mb-3" 
+                        style="width: 150px; height: 150px; object-fit: cover;"
+                        alt="{{ user.first_name }}"
+                    >
+                {% else %}
+                    <div 
+                        class="bg-secondary rounded-circle d-inline-block mb-3" 
+                        style="width: 150px; height: 150px;"
+                    ></div>
+                {% endif %}
+                
+                <!-- Name -->
+                <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+                
+                <!-- Year and Branch -->
+                <p class="text-muted">
+                    {{ profile.year }} Year • {{ profile.branch }}
+                </p>
+                
+                <!-- Bio -->
+                {% if profile.bio %}
+                    <p class="text-muted mt-3">
+                        "{{ profile.bio }}"
+                    </p>
+                {% endif %}
+                
+                <!-- Phone (if available) -->
+                {% if profile.phone %}
+                    <p class="text-muted">
+                        📱 {{ profile.phone }}
+                    </p>
+                {% endif %}
+                
+                <hr>
+                
+                <!-- Edit Profile Button (only for own profile) -->
+                {% if request.user == user %}
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary">
+                            ✏️ Edit Profile
+                        </a>
+                        <a href="{% url 'my_events' %}" class="btn btn-secondary">
+                            📋 My Events
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">
+                        👤 Joined: {{ user.date_joined|date:"M d, Y" }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Content -->
+    <div class="col-md-8">
+        <!-- Created Events Section -->
+        <div class="mb-5">
+            <h3 class="mb-3">
+                📌 Events Created ({{ created_events.count }})
+            </h3>
+            
+            {% if created_events %}
+                <div class="row">
+                    {% for event in created_events %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <!-- Event Image -->
+                                {% if event.cover_image %}
+                                    <img 
+                                        src="{{ event.cover_image.url }}" 
+                                        class="card-img-top" 
+                                        alt="{{ event.title }}"
+                                        style="height: 150px; object-fit: cover;"
+                                    >
+                                {% else %}
+                                    <div 
+                                        class="card-img-top bg-secondary" 
+                                        style="height: 150px; display: flex; align-items: center;"
+                                    >
+                                        <span class="text-white w-100 text-center">No Image</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ event.title }}</h5>
+                                    <p class="card-text text-muted">
+                                        📅 {{ event.date|date:"M d" }}<br>
+                                        👥 {{ event.attendees_count }} attending
+                                    </p>
+                                </div>
+                                
+                                <div class="card-footer bg-white">
+                                    <a 
+                                        href="{% url 'event_detail' event.id %}" 
+                                        class="btn btn-sm btn-primary w-100"
+                                    >
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    {{ user.first_name }} hasn't created any events yet.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Attending Events Section -->
+        <div class="mb-5">
+            <h3 class="mb-3">
+                ✓ Events Attending ({{ attending_events.count }})
+            </h3>
+            
+            {% if attending_events %}
+                <div class="row">
+                    {% for event in attending_events %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <!-- Event Image -->
+                                {% if event.cover_image %}
+                                    <img 
+                                        src="{{ event.cover_image.url }}" 
+                                        class="card-img-top" 
+                                        alt="{{ event.title }}"
+                                        style="height: 150px; object-fit: cover;"
+                                    >
+                                {% else %}
+                                    <div 
+                                        class="card-img-top bg-secondary" 
+                                        style="height: 150px; display: flex; align-items: center;"
+                                    >
+                                        <span class="text-white w-100 text-center">No Image</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ event.title }}</h5>
+                                    <p class="card-text text-muted">
+                                        📅 {{ event.date|date:"M d" }}<br>
+                                        👥 {{ event.attendees_count }} attending
+                                    </p>
+                                </div>
+                                
+                                <div class="card-footer bg-white">
+                                    <a 
+                                        href="{% url 'event_detail' event.id %}" 
+                                        class="btn btn-sm btn-primary w-100"
+                                    >
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    {{ user.first_name }} is not attending any events yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Back to Home Link -->
+<div class="mt-5">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        ← Back to Home
+    </a>
+</div>
+
+{% endblock %}

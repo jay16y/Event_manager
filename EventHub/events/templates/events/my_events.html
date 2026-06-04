@@ -1,0 +1,246 @@
+<!-- events/templates/events/my_events.html -->
+{% extends 'base.html' %}
+
+{% block title %}My Events - EventHub{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>📋 My Events</h1>
+        <p class="text-muted">Manage your events and see what you're attending</p>
+    </div>
+    
+    <div class="col-md-4 text-end">
+        <a href="{% url 'create_event' %}" class="btn btn-primary btn-lg">
+            + Create New Event
+        </a>
+    </div>
+</div>
+
+<!-- Tabs for switching between sections -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button 
+            class="nav-link active" 
+            id="created-tab" 
+            data-bs-toggle="tab" 
+            data-bs-target="#created" 
+            type="button" 
+            role="tab"
+        >
+            📌 Events I Created ({{ created_events.count }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button 
+            class="nav-link" 
+            id="attending-tab" 
+            data-bs-toggle="tab" 
+            data-bs-target="#attending" 
+            type="button" 
+            role="tab"
+        >
+            ✓ Events I'm Attending ({{ attending_events.count }})
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content">
+    
+    <!-- Created Events Tab -->
+    <div class="tab-pane fade show active" id="created" role="tabpanel">
+        {% if created_events %}
+            <div class="row">
+                {% for event in created_events %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <!-- Event Image -->
+                            {% if event.cover_image %}
+                                <img 
+                                    src="{{ event.cover_image.url }}" 
+                                    class="card-img-top" 
+                                    alt="{{ event.title }}"
+                                    style="height: 200px; object-fit: cover;"
+                                >
+                            {% else %}
+                                <div 
+                                    class="card-img-top bg-secondary" 
+                                    style="height: 200px; display: flex; align-items: center;"
+                                >
+                                    <span class="text-white w-100 text-center">No Image</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="card-body">
+                                <!-- Title -->
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                
+                                <!-- Date and Time -->
+                                <p class="card-text text-muted">
+                                    📅 {{ event.date|date:"M d, Y" }}<br>
+                                    🕐 {{ event.time|time:"H:i" }}
+                                </p>
+                                
+                                <!-- Location -->
+                                <p class="card-text">
+                                    📍 {{ event.location }}
+                                </p>
+                                
+                                <!-- Attendee Count -->
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        👥 {{ event.attendees_count }} 
+                                        {% if event.max_attendees > 0 %}
+                                            / {{ event.max_attendees }}
+                                        {% endif %}
+                                        attending
+                                    </small>
+                                </p>
+                                
+                                <!-- Status Badge -->
+                                {% if event.status == 'upcoming' %}
+                                    <span class="badge bg-success">Upcoming</span>
+                                {% elif event.status == 'ongoing' %}
+                                    <span class="badge bg-info">Ongoing</span>
+                                {% elif event.status == 'completed' %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="card-footer bg-white">
+                                <div class="d-grid gap-2">
+                                    <a 
+                                        href="{% url 'event_detail' event.id %}" 
+                                        class="btn btn-sm btn-primary"
+                                    >
+                                        👁️ View
+                                    </a>
+                                    <a 
+                                        href="{% url 'edit_event' event.id %}" 
+                                        class="btn btn-sm btn-warning"
+                                    >
+                                        ✏️ Edit
+                                    </a>
+                                    <a 
+                                        href="{% url 'delete_event' event.id %}" 
+                                        class="btn btn-sm btn-danger"
+                                    >
+                                        🗑️ Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <h4>No events created yet</h4>
+                <p>You haven't created any events. Start by creating your first event!</p>
+                <a href="{% url 'create_event' %}" class="btn btn-primary">
+                    Create Event
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Attending Events Tab -->
+    <div class="tab-pane fade" id="attending" role="tabpanel">
+        {% if attending_events %}
+            <div class="row">
+                {% for event in attending_events %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <!-- Event Image -->
+                            {% if event.cover_image %}
+                                <img 
+                                    src="{{ event.cover_image.url }}" 
+                                    class="card-img-top" 
+                                    alt="{{ event.title }}"
+                                    style="height: 200px; object-fit: cover;"
+                                >
+                            {% else %}
+                                <div 
+                                    class="card-img-top bg-secondary" 
+                                    style="height: 200px; display: flex; align-items: center;"
+                                >
+                                    <span class="text-white w-100 text-center">No Image</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="card-body">
+                                <!-- Title -->
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                
+                                <!-- Date and Time -->
+                                <p class="card-text text-muted">
+                                    📅 {{ event.date|date:"M d, Y" }}<br>
+                                    🕐 {{ event.time|time:"H:i" }}
+                                </p>
+                                
+                                <!-- Location -->
+                                <p class="card-text">
+                                    📍 {{ event.location }}
+                                </p>
+                                
+                                <!-- Creator -->
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Created by: 
+                                        <a href="{% url 'user_profile' event.creator.username %}">
+                                            {{ event.creator.first_name }}
+                                        </a>
+                                    </small>
+                                </p>
+                                
+                                <!-- Status Badge -->
+                                {% if event.status == 'upcoming' %}
+                                    <span class="badge bg-success">Upcoming</span>
+                                {% elif event.status == 'ongoing' %}
+                                    <span class="badge bg-info">Ongoing</span>
+                                {% elif event.status == 'completed' %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="card-footer bg-white">
+                                <div class="d-grid gap-2">
+                                    <a 
+                                        href="{% url 'event_detail' event.id %}" 
+                                        class="btn btn-sm btn-primary"
+                                    >
+                                        👁️ View Details
+                                    </a>
+                                    <form method="POST" action="{% url 'leave_event' event.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-warning w-100">
+                                            👋 Leave Event
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <h4>Not attending any events yet</h4>
+                <p>Browse events and join ones that interest you!</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    Browse Events
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+</div>
+
+{% endblock %}

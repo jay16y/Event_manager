@@ -1,0 +1,163 @@
+<!-- events/templates/events/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}Home - EventHub{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>🎉 Campus Events</h1>
+        <p class="text-muted">Discover and join exciting campus events</p>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div class="col-md-4 text-end">
+            <a href="{% url 'create_event' %}" class="btn btn-primary btn-lg">
+                + Create Event
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <!-- Search -->
+            <div class="col-md-6">
+                <input 
+                    type="text" 
+                    name="search" 
+                    class="form-control" 
+                    placeholder="Search events..."
+                    value="{{ search_query }}"
+                >
+            </div>
+            
+            <!-- Category Filter -->
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Sort -->
+            <div class="col-md-2">
+                <select name="sort" class="form-select">
+                    <option value="-date">Newest First</option>
+                    <option value="date">Oldest First</option>
+                    <option value="title">A to Z</option>
+                </select>
+            </div>
+            
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-secondary w-100">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Events Grid -->
+<div class="row">
+    {% if events %}
+        {% for event in events %}
+            <div class="col-md-4 mb-4">
+                <div class="card event-card h-100">
+                    <!-- Event Image -->
+                    {% if event.cover_image %}
+                        <img 
+                            src="{{ event.cover_image.url }}" 
+                            class="card-img-top" 
+                            alt="{{ event.title }}"
+                            style="height: 200px; object-fit: cover;"
+                        >
+                    {% else %}
+                        <div 
+                            class="card-img-top bg-secondary" 
+                            style="height: 200px; display: flex; align-items: center; justify-content: center;"
+                        >
+                            <span class="text-white text-center">No Image</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <!-- Category Badge -->
+                        <span class="badge bg-info mb-2">
+                            {{ event.category.name }}
+                        </span>
+                        
+                        <!-- Title -->
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        
+                        <!-- Date and Time -->
+                        <p class="card-text text-muted">
+                            📅 {{ event.date|date:"M d, Y" }}<br>
+                            🕐 {{ event.time|time:"H:i" }}
+                        </p>
+                        
+                        <!-- Location -->
+                        <p class="card-text">
+                            📍 {{ event.location }}
+                        </p>
+                        
+                        <!-- Attendee Count -->
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                👥 {{ event.attendees_count }} 
+                                {% if event.max_attendees > 0 %}
+                                    / {{ event.max_attendees }}
+                                {% endif %}
+                                attending
+                            </small>
+                            
+                            {% if event.max_attendees > 0 %}
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div
+                                        class="progress-bar"
+                                        role="progressbar"
+                                        style="--progress-width: {{ event.percentage }}%; width: var(--progress-width);"
+                                        aria-valuenow="{{ event.percentage }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"
+                                    ></div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="card-footer bg-white">
+                        <a 
+                            href="{% url 'event_detail' event.id %}" 
+                            class="btn btn-sm btn-primary w-100"
+                        >
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>No events found</h4>
+                <p>Try adjusting your search or filters</p>
+                {% if user.is_authenticated %}
+                    <p>
+                        <a href="{% url 'create_event' %}" class="btn btn-primary">
+                            Create the first event!
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
