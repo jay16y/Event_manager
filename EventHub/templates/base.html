@@ -511,12 +511,14 @@
                     </li>
                     
                     {% if user.is_authenticated %}
-                        <!-- Create Event (Logged In) -->
+                        {% if perms.events.can_create_event %}
+                        <!-- Create Event (Has Permission) -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'create_event' %}">
                                 <i class="fas fa-plus-circle"></i> Create
                             </a>
                         </li>
+                        {% endif %}
                         
                         <!-- My Events (Logged In) -->
                         <li class="nav-item">
@@ -608,7 +610,9 @@
                     <ul class="list-unstyled small">
                         <li><a href="{% url 'home' %}">Browse Events</a></li>
                         {% if user.is_authenticated %}
+                            {% if perms.events.can_create_event %}
                             <li><a href="{% url 'create_event' %}">Create Event</a></li>
+                            {% endif %}
                             <li><a href="{% url 'my_events' %}">My Events</a></li>
                         {% else %}
                             <li><a href="{% url 'login' %}">Login</a></li>

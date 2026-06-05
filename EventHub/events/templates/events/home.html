@@ -10,7 +10,7 @@
         <p class="text-muted">Discover and join exciting campus events</p>
     </div>
     
-    {% if user.is_authenticated %}
+    {% if perms.events.can_create_event %}
         <div class="col-md-4 text-end">
             <a href="{% url 'create_event' %}" class="btn btn-primary btn-lg">
                 + Create Event
@@ -39,7 +39,7 @@
                 <select name="category" class="form-select">
                     <option value="">All Categories</option>
                     {% for category in categories %}
-                        <option value="{{ category.id }}">
+                        <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"d" %}selected{% endif %}>
                             {{ category.name }}
                         </option>
                     {% endfor %}
@@ -49,9 +49,9 @@
             <!-- Sort -->
             <div class="col-md-2">
                 <select name="sort" class="form-select">
-                    <option value="-date">Newest First</option>
-                    <option value="date">Oldest First</option>
-                    <option value="title">A to Z</option>
+                    <option value="-date" {% if selected_sort == '-date' %}selected{% endif %}>Newest First</option>
+                    <option value="date" {% if selected_sort == 'date' %}selected{% endif %}>Oldest First</option>
+                    <option value="title" {% if selected_sort == 'title' %}selected{% endif %}>A to Z</option>
                 </select>
             </div>
             
@@ -149,7 +149,7 @@
             <div class="alert alert-info text-center">
                 <h4>No events found</h4>
                 <p>Try adjusting your search or filters</p>
-                {% if user.is_authenticated %}
+                {% if perms.events.can_create_event %}
                     <p>
                         <a href="{% url 'create_event' %}" class="btn btn-primary">
                             Create the first event!
