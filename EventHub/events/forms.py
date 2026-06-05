@@ -17,9 +17,14 @@ class UserRegistrationForm(UserCreationForm):
             'placeholder': 'Enter your email'
         })
     )
-    # forms.EmailField validates email format
-    # widget=forms.EmailInput makes it appear as email input
-    # attrs adds CSS classes and placeholders
+    
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Choose a username'
+        })
+    )
     
     first_name = forms.CharField(
         max_length=100,
@@ -39,7 +44,7 @@ class UserRegistrationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'password1', 'password2']
+        fields = ['email', 'username', 'first_name', 'last_name', 'password1', 'password2']
     
     def clean_email(self):
         """Check if email already exists"""
@@ -47,7 +52,13 @@ class UserRegistrationForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("This email is already registered!")
         return email
-
+    
+    def clean_username(self):
+        """Check if username already exists"""
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken!")
+        return username
 
 # Form 2: User Profile Update
 class UserProfileForm(forms.ModelForm):

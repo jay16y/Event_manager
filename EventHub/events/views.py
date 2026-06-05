@@ -77,38 +77,32 @@ def logout_view(request):
 # ==================== EVENT VIEWS ====================
 
 def home(request):
-    """Display all events (home page)"""
+    """Display the homepage with a list of events"""
     
-    # Get all events
-    events = Event.objects.all()
-    
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        # Q objects allow complex queries
-        events = events.filter(
-            Q(title__icontains=search_query) |  # Search in title
-            Q(description__icontains=search_query)  # or description
-        )
-    
-    # Filter by category
-    category_id = request.GET.get('category', '')
-    if category_id:
-        events = events.filter(category_id=category_id)
-    
-    # Sort options
-    sort_by = request.GET.get('sort', '-date')
-    events = events.order_by(sort_by)
-    
-    # Get all categories for filter dropdown
+    # search functionality
+    query = request.GET.get('q')
+    if query:
+        events = Event.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(category__name__icontains=query)
+        ).distinct()
+    else:
+        events = Event.objects.all()
+
+    for event in events:
+        if event.max_attendees > 0:
+            event.percentage = (event.attendees_count / event.max_attendees) * 100
+        else:
+            event.percentage = 0
+            
     categories = EventCategory.objects.all()
     
     context = {
         'events': events,
         'categories': categories,
-        'search_query': search_query,
+        'query': query
     }
-    
     return render(request, 'events/home.html', context)
 
 
