@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.contrib import messages
@@ -79,20 +79,32 @@ def logout_view(request):
 def home(request):
     """Display the homepage with a list of events"""
     
-    # search functionality
-    query = request.GET.get('q')
-    if query:
-        events = Event.objects.filter(
-            Q(title__icontains=query) |
-            Q(description__icontains=query) |
-            Q(category__name__icontains=query)
+    # Search functionality - read 'search' param to match template input name
+    search_query = request.GET.get('search', '')
+    category_id = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', '-date')
+    
+    events = Event.objects.all()
+    
+    # Apply search filter
+    if search_query:
+        events = events.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query)
         ).distinct()
-    else:
-        events = Event.objects.all()
+    
+    # Apply category filter
+    if category_id:
+        events = events.filter(category_id=category_id)
+    
+    # Apply sort ordering
+    if sort_by in ['date', '-date', 'title']:
+        events = events.order_by(sort_by)
 
     for event in events:
         if event.max_attendees > 0:
-            event.percentage = (event.attendees_count / event.max_attendees) * 100
+            event.percentage = (event.attendees_count() / event.max_attendees) * 100
         else:
             event.percentage = 0
             
@@ -101,14 +113,21 @@ def home(request):
     context = {
         'events': events,
         'categories': categories,
-        'query': query
+        'search_query': search_query,
+        'selected_category': category_id,
+        'selected_sort': sort_by,
     }
     return render(request, 'events/home.html', context)
 
 
 @login_required(login_url='login')
 def create_event(request):
-    """Create a new event"""
+    """Create a new event (requires 'can_create_event' permission)"""
+    
+    # Check if user has permission to create events
+    if not request.user.has_perm('events.can_create_event'):
+        messages.error(request, "You don't have permission to create events. Contact an admin to get access.")
+        return redirect('home')
     
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES)
