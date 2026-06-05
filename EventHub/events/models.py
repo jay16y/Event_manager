@@ -95,10 +95,12 @@ class Event(models.Model):
     category = models.ForeignKey(
         EventCategory,
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        blank=True
     )
     # ForeignKey means event belongs to ONE category
     # on_delete=models.SET_NULL means if category deleted, it becomes null
+    # blank=True means category is optional in forms
     
     # Creator Info
     creator = models.ForeignKey(
@@ -194,6 +196,9 @@ class Event(models.Model):
         indexes = [
             models.Index(fields=['date']),
             models.Index(fields=['category']),
+        ]
+        permissions = [
+            ('can_create_event', 'Can create new events'),
         ]
 
 

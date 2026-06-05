@@ -94,6 +94,15 @@ class UserProfileForm(forms.ModelForm):
 class EventForm(forms.ModelForm):
     """Form to create or edit events"""
     
+    category = forms.ModelChoiceField(
+        queryset=EventCategory.objects.all(),
+        required=False,
+        empty_label='Select Category (Optional)',
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
     class Meta:
         model = Event
         fields = ['title', 'description', 'category', 'date', 'time', 
@@ -108,9 +117,6 @@ class EventForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 5,
                 'placeholder': 'Describe your event...'
-            }),
-            'category': forms.Select(attrs={
-                'class': 'form-control'
             }),
             'date': forms.DateInput(attrs={
                 'class': 'form-control',
