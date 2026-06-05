@@ -1,91 +1,59 @@
-<!-- accounts/templates/accounts/login.html -->
+<!-- events/templates/events/edit_profile.html -->
 {% extends 'base.html' %}
 
-{% block title %}Login - EventHub{% endblock %}
+{% block title %}Edit Profile - EventHub{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-md-5 offset-md-3">
+    <div class="col-md-6 offset-md-3">
         <div class="card">
-            <div class="card-body p-5">
-                <h2 class="card-title text-center mb-4">🎉 Login to EventHub</h2>
-                
-                <form method="POST">
+            <div class="card-header">
+                <h5 class="mb-0">✏️ Edit Your Profile</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     
-                    <!-- Username -->
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input 
-                            type="text" 
-                            name="username" 
-                            class="form-control" 
-                            placeholder="Enter your username"
-                            required
-                        >
-                    </div>
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="text-pink">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            {{ field }}
+                            
+                            {% if field.help_text %}
+                                <small class="form-text text-muted-custom">
+                                    {{ field.help_text|safe }}
+                                </small>
+                            {% endif %}
+                            
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
                     
-                    <!-- Password -->
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input 
-                            type="password" 
-                            name="password" 
-                            class="form-control" 
-                            placeholder="Enter your password"
-                            required
-                        >
-                    </div>
+                    <hr>
                     
-                    <!-- Remember Me -->
-                    <div class="mb-3 form-check">
-                        <input 
-                            type="checkbox" 
-                            class="form-check-input" 
-                            id="remember" 
-                            name="remember"
-                        >
-                        <label class="form-check-label" for="remember">
-                            Remember me
-                        </label>
-                    </div>
-                    
-                    <!-- Login Button -->
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            Login
+                            💾 Save Changes
                         </button>
+                        <a href="{% url 'my_events' %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
                     </div>
                 </form>
-                
-                <hr>
-                
-                <!-- Sign Up Link -->
-                <p class="text-center">
-                    Don't have an account? 
-                    <a href="{% url 'register' %}">Sign up here</a>
-                </p>
-                
-                <!-- Forgot Password Link (optional) -->
-                <p class="text-center">
-                    <a href="#" class="text-muted small">Forgot password?</a>
-                </p>
-                
-                <!-- Demo Credentials -->
-                <div class="alert alert-info mt-4 mb-0">
-                    <small>
-                        <strong>Demo Account:</strong><br>
-                        Username: <code>demo</code><br>
-                        Password: <code>demo123</code>
-                    </small>
-                </div>
             </div>
         </div>
-        
-        <!-- Security Note -->
-        <p class="text-center text-muted mt-3 small">
-            Your account is secure. We never share your data.
-        </p>
     </div>
 </div>
 {% endblock %}
