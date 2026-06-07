@@ -1,0 +1,56 @@
+<!-- accounts/templates/accounts/verify_signup_email.html -->
+{% extends 'base.html' %}
+
+{% block title %}Verify Email - EventHub{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-5 offset-md-3">
+        <div class="card">
+            <div class="card-body p-5">
+                <h2 class="card-title text-center mb-4">📧 Verify Your Email</h2>
+                <p class="text-center text-muted-custom mb-4">
+                    We've sent a 6-digit OTP to <strong class="text-cyan">{{ email }}</strong>
+                    <br>
+                    <small>Please check your inbox (and spam folder)</small>
+                </p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Enter OTP</label>
+                        <input 
+                            type="text" 
+                            name="otp" 
+                            class="form-control text-center"
+                            placeholder="______"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            style="font-size: 1.8rem; letter-spacing: 12px; font-weight: 700;"
+                            required
+                            autofocus
+                        >
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            ✓ Verify & Create Account
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <p class="text-center text-muted-custom small">
+                    OTP expires in 10 minutes.
+                </p>
+                <p class="text-center">
+                    Didn't receive OTP? 
+                    <a href="{% url 'register' %}">Go back & try again</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
