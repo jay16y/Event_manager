@@ -1,4 +1,6 @@
 # events/views.py
+import random
+import time
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -6,29 +8,57 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.contrib import messages
-from .models import Event, EventCategory, UserProfile, Attendance, Notification
+from django.core.mail import send_mail
+from .models import Event, EventCategory, UserProfile, Attendance, Notification, PasswordResetOTP
 from .forms import UserRegistrationForm, EventForm, UserProfileForm
 
 
 # ==================== AUTHENTICATION VIEWS ====================
 
 def register(request):
-    """Handle user registration/signup"""
+    """Handle user registration/signup with email OTP verification"""
     
     if request.method == 'POST':
         # User submitted the form
         form = UserRegistrationForm(request.POST)
         
         if form.is_valid():
-            # Form data is correct
-            user = form.save()  # Save to database
+            # Don't create user yet - verify email first
+            otp_code = str(random.randint(100000, 999999))
+            email = form.cleaned_data['email']
             
-            # Create UserProfile for new user
-            UserProfile.objects.create(user=user)
+            # Send OTP to email FIRST (before modifying session)
+            try:
+                send_mail(
+                    subject='EventHub - Verify Your Email',
+                    message=(
+                        f'Hello {form.cleaned_data["first_name"]},\n\n'
+                        f'Your email verification OTP is: {otp_code}\n\n'
+                        f'This OTP will expire in 10 minutes.\n\n'
+                        f'If you did not sign up on EventHub, please ignore this email.\n\n'
+                        f'- EventHub Team'
+                    ),
+                    from_email=None,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception:
+                messages.error(request, "Failed to send verification email. Please check your email and try again.")
+                return render(request, 'accounts/register.html', {'form': form})
             
-            # Show success message
-            messages.success(request, "Account created! Please login.")
-            return redirect('login')
+            # Email sent successfully - now store data in session
+            request.session['signup_data'] = {
+                'email': email,
+                'username': form.cleaned_data['username'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'password': form.cleaned_data['password1'],
+            }
+            request.session['signup_otp'] = otp_code
+            request.session['signup_otp_time'] = time.time()
+            
+            messages.success(request, f"Verification OTP sent to {email}")
+            return redirect('verify_signup_email')
         else:
             # Form has errors
             for field, errors in form.errors.items():
@@ -39,6 +69,54 @@ def register(request):
         form = UserRegistrationForm()
     
     return render(request, 'accounts/register.html', {'form': form})
+
+
+def verify_signup_email(request):
+    """Verify email OTP during signup - only creates account after verification"""
+    
+    signup_data = request.session.get('signup_data')
+    if not signup_data:
+        messages.error(request, "Please fill the signup form first.")
+        return redirect('register')
+    
+    if request.method == 'POST':
+        otp_entered = request.POST.get('otp', '').strip()
+        stored_otp = request.session.get('signup_otp')
+        otp_time = request.session.get('signup_otp_time', 0)
+        
+        # Check OTP expiry (10 minutes)
+        if time.time() - otp_time > 600:
+            # Clean up expired session data
+            for key in ['signup_data', 'signup_otp', 'signup_otp_time']:
+                request.session.pop(key, None)
+            messages.error(request, "OTP has expired. Please sign up again.")
+            return redirect('register')
+        
+        if otp_entered == stored_otp:
+            # OTP verified! Now create the user account
+            user = User.objects.create_user(
+                username=signup_data['username'],
+                email=signup_data['email'],
+                password=signup_data['password'],
+                first_name=signup_data['first_name'],
+                last_name=signup_data['last_name'],
+            )
+            
+            # Create UserProfile
+            UserProfile.objects.create(user=user)
+            
+            # Clean up session
+            for key in ['signup_data', 'signup_otp', 'signup_otp_time']:
+                request.session.pop(key, None)
+            
+            messages.success(request, "Email verified! Account created successfully. Please login.")
+            return redirect('login')
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+    
+    return render(request, 'accounts/verify_signup_email.html', {
+        'email': signup_data['email']
+    })
 
 
 def login_view(request):
@@ -333,3 +411,132 @@ def edit_profile(request):
         form = UserProfileForm(instance=profile)
     
     return render(request, 'events/edit_profile.html', {'form': form})
+
+
+# ==================== PASSWORD RESET VIEWS ====================
+
+def forgot_password(request):
+    """Step 1: Enter email to receive OTP"""
+    
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, "No account found with this email address.")
+            return render(request, 'accounts/forgot_password.html')
+        
+        # Generate 6-digit OTP
+        otp_code = str(random.randint(100000, 999999))
+        
+        # Invalidate any previous unused OTPs for this user
+        PasswordResetOTP.objects.filter(user=user, is_used=False).update(is_used=True)
+        
+        # Save new OTP
+        PasswordResetOTP.objects.create(user=user, otp=otp_code)
+        
+        # Send OTP via email
+        try:
+            send_mail(
+                subject='EventHub - Password Reset OTP',
+                message=(
+                    f'Hello {user.first_name},\n\n'
+                    f'Your OTP for password reset is: {otp_code}\n\n'
+                    f'This OTP will expire in 10 minutes.\n\n'
+                    f'If you did not request this, please ignore this email.\n\n'
+                    f'- EventHub Team'
+                ),
+                from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            messages.success(request, f"OTP has been sent to {email}")
+        except Exception:
+            messages.error(request, "Failed to send email. Please try again later.")
+            return render(request, 'accounts/forgot_password.html')
+        
+        # Store email in session for next steps
+        request.session['reset_email'] = email
+        return redirect('verify_otp')
+    
+    return render(request, 'accounts/forgot_password.html')
+
+
+def verify_otp(request):
+    """Step 2: Verify the OTP sent to email"""
+    
+    email = request.session.get('reset_email')
+    if not email:
+        messages.error(request, "Please enter your email first.")
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        otp_entered = request.POST.get('otp', '').strip()
+        
+        try:
+            user = User.objects.get(email=email)
+            otp_obj = PasswordResetOTP.objects.filter(
+                user=user, otp=otp_entered, is_used=False
+            ).latest('created_at')
+            
+            if otp_obj.is_expired():
+                messages.error(request, "OTP has expired. Please request a new one.")
+                return redirect('forgot_password')
+            
+            # Mark OTP as used
+            otp_obj.is_used = True
+            otp_obj.save()
+            
+            # Allow password reset
+            request.session['reset_user_id'] = user.id
+            return redirect('reset_password')
+            
+        except (User.DoesNotExist, PasswordResetOTP.DoesNotExist):
+            messages.error(request, "Invalid OTP. Please try again.")
+    
+    return render(request, 'accounts/verify_otp.html', {'email': email})
+
+
+def reset_password(request):
+    """Step 3: Set new password after OTP verification"""
+    
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        messages.error(request, "Please verify your OTP first.")
+        return redirect('forgot_password')
+    
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        if password != confirm_password:
+            messages.error(request, "Passwords don't match!")
+            return render(request, 'accounts/reset_password.html')
+        
+        if len(password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, 'accounts/reset_password.html')
+        
+        try:
+            user = User.objects.get(id=user_id)
+            user.set_password(password)
+            user.save()
+            
+            # Clean up session
+            if 'reset_email' in request.session:
+                del request.session['reset_email']
+            if 'reset_user_id' in request.session:
+                del request.session['reset_user_id']
+            
+            messages.success(request, "Password reset successfully! Please login with your new password.")
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return redirect('forgot_password')
+    
+    return render(request, 'accounts/reset_password.html')
