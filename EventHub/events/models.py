@@ -273,3 +273,24 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+
+
+# Model 6: Password Reset OTP
+class PasswordResetOTP(models.Model):
+    """Store OTPs for password reset via email"""
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    def is_expired(self):
+        """OTP expires after 10 minutes"""
+        time_diff = (timezone.now() - self.created_at).total_seconds()
+        return time_diff > 600  # 10 minutes
+    
+    def __str__(self):
+        return f"OTP for {self.user.username}"
+    
+    class Meta:
+        ordering = ['-created_at']
