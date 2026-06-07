@@ -128,3 +128,15 @@ AUTH_USER_MODEL = 'auth.User'
 
 # Debug mode
 DEBUG = True
+
+# ==================== EMAIL SETTINGS ====================
+# Gmail SMTP configuration for sending OTP emails
+# To use: Replace EMAIL_HOST_USER and EMAIL_HOST_PASSWORD with your Gmail credentials
+# You need a Google App Password: https://myaccount.google.com/apppasswords
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'eventhub.noreply16@gmail.com'         # ← Replace with your Gmail
+EMAIL_HOST_PASSWORD = 'gplb xyvt cxgc quvf'         # ← Replace with your Google App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
