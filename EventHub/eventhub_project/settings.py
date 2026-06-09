@@ -25,12 +25,12 @@ SECRET_KEY = 'django-insecure-3-yr7dcpll=c&^@di(o)$_tf=^e^nvy^0-23i10qfexfhv6x4c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'yourusername.pythonanywhere.com']  # ← Replace 'yourusername'
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'Pjshana.pythonanywhere.com']  # ← Replace 'yourusername'
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://yourusername.pythonanywhere.com',  # ← Replace 'yourusername'
+    'https://Pjshana.pythonanywhere.com', 
 ]
 
 
